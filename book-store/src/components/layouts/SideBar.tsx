@@ -3,6 +3,7 @@ import {
   Award,
   BarChart2,
   Book,
+  BookIcon,
   Building2,
   Calendar,
   CalendarCheck,
@@ -16,7 +17,9 @@ import {
   List,
   LogOut,
   MapPin,  
+  PersonStanding,  
   Settings,
+  StarIcon,
   Tags,
   Trash,
   Trash2,
@@ -66,8 +69,8 @@ const SideBar = () => {
                   <SidebarGroup>
                     <SidebarGroupLabel asChild>
                       <CollapsibleTrigger>
-                        <Car className="w-4 h-4" />
-                        Vehicles
+                        <BookIcon className="w-4 h-4" />
+                        Books
                         <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
                       </CollapsibleTrigger>
                     </SidebarGroupLabel>
@@ -78,18 +81,11 @@ const SideBar = () => {
                           <SidebarMenuButton asChild>
                             <Link href="/dashboard/vehicles" className="">
                               <List className="w-3 h-3" />
-                              <span>All Vehicles</span>
+                              <span>All Book</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuSubItem>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuButton asChild>
-                            <Link href="/dashboard/vehicles/deleted">
-                              <Trash2 className="w-3 h-3" />
-                              <span>Deleted Vehicle</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuSubItem>
+                        
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarGroup>
@@ -99,8 +95,8 @@ const SideBar = () => {
                   <SidebarGroup>
                     <SidebarGroupLabel asChild>
                       <CollapsibleTrigger>
-                        <Tags className="w-4 h-4" />
-                        Categories
+                        <PersonStanding className="w-4 h-4" />
+                          Author
                         <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
                       </CollapsibleTrigger>
                     </SidebarGroupLabel>
@@ -108,20 +104,13 @@ const SideBar = () => {
                       <SidebarMenuSub>
                         <SidebarMenuSubItem>
                           <SidebarMenuButton asChild>
-                            <Link href="/dashboard/categories">
+                            <Link href="/author">
                               <List className="w-3 h-3" />
-                              <span>All Categories</span>
+                              <span>All Author</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuSubItem>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuButton asChild>
-                            <Link href="/dashboard/categories/deleted">
-                              <Trash className="w-3 h-3" />
-                              <span>Deleted Categories</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuSubItem>
+                        
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarGroup>
@@ -131,8 +120,8 @@ const SideBar = () => {
                   <SidebarGroup>
                     <SidebarGroupLabel asChild>
                       <CollapsibleTrigger>
-                        <Book className="w-4 h-4" />
-                        Brands
+                        <StarIcon className="w-4 h-4" />
+                          Rating
                         <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
                       </CollapsibleTrigger>
                     </SidebarGroupLabel>
@@ -142,44 +131,16 @@ const SideBar = () => {
                           <SidebarMenuButton asChild>
                             <Link href="/dashboard/brands">
                               <List className="w-3 h-3" />
-                              <span>All Brands</span>
+                              <span>All Rating</span>
                             </Link>
                           </SidebarMenuButton>
-                        </SidebarMenuSubItem>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuButton asChild>
-                            <Link href="/dashboard/categories/deleted">
-                              <Trash className="w-3 h-3" />
-                              <span>Deleted Categories</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuSubItem>
+                        </SidebarMenuSubItem>                        
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarGroup>
                 </Collapsible>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/maintenance">
-                    <Wrench className="w-4 h-4" />
-                    <span>Maintenance</span>
-                    <Badge variant="destructive" className="ml-auto">
-                      3
-                    </Badge>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/locations">
-                    <MapPin className="w-4 h-4" />
-                    <span>Locations</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

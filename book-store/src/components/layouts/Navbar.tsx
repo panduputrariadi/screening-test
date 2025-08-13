@@ -20,9 +20,10 @@ const Navbar = () => {
   console.log(theme);
   return (
     <nav className="p-4 flex items-center justify-between sticky top-0 z-50 bg-background">
-     
+      
+      <SidebarTrigger />
       <div className="flex items-center gap-4">
-       
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">

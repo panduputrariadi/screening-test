@@ -28,8 +28,9 @@ class AuthorService
             $per_page = $request->input('per_page', 10);
             $page = $request->input('page', 1);
 
-            $authors = Author::with(['books', 'rating_author_given'])
-                ->withCount('rating_author_given')->paginate($per_page, ['*'], 'page', $page);
+            $authors = Author::with(['rating_author_given'])
+                ->withCount('rating_author_given')
+                ->orderBy('rating_author_given_count', 'desc')->paginate($per_page, ['*'], 'page', $page);
 
             return response()->json([
                 'status' => true,
