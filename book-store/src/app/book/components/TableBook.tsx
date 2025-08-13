@@ -59,13 +59,16 @@ const BookTable = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-    
-  const initialValues = useMemo(() => ({
-    page: Number(searchParams.get("page")) || 1,
-    perPage: Number(searchParams.get("perPage")) || 5,
-    search: searchParams.get("search") || "",
-  }), []);
-  
+
+  const initialValues = useMemo(
+    () => ({
+      page: Number(searchParams.get("page")) || 1,
+      perPage: Number(searchParams.get("perPage")) || 5,
+      search: searchParams.get("search") || "",
+    }),
+    []
+  );
+
   const [page, setPage] = useState(initialValues.page);
   const [perPage, setPerPage] = useState(initialValues.perPage);
   const [searchValue, setSearchValue] = useState(initialValues.search);
@@ -73,33 +76,39 @@ const BookTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-    
+
   const debouncedSearch = useDebounce(searchValue, 500);
-    
+
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     if (debouncedSearch) params.set("search", debouncedSearch);
     if (page > 1) params.set("page", String(page));
     if (perPage !== 5) params.set("perPage", String(perPage));
-    
-    const newUrl = `${pathname}${params.toString() ? `?${params.toString()}` : ''}`;
-        
+
+    const newUrl = `${pathname}${
+      params.toString() ? `?${params.toString()}` : ""
+    }`;
+
     if (window.location.pathname + window.location.search !== newUrl) {
       router.replace(newUrl, { scroll: false });
     }
   }, [debouncedSearch, page, perPage, pathname, router]);
-  
+
+  // useEffect(() => {
+  //   if (debouncedSearch !== initialValues.search && page !== 1) {
+  //     setPage(1);
+  //   }
+  // }, [debouncedSearch]);
   useEffect(() => {
-    if (debouncedSearch !== initialValues.search && page !== 1) {
-      setPage(1);
-    }
-  }, [debouncedSearch]);
-  
+    setPage(1);
+  }, [debouncedSearch, perPage]);
+
+
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["books", page, perPage, debouncedSearch], 
+    queryKey: ["books", page, perPage, debouncedSearch],
     queryFn: () => fetchBooks(page, perPage, debouncedSearch || undefined),
-    staleTime: 5000,     
+    staleTime: 5000,
   });
 
   const books = data?.items || [];
@@ -112,7 +121,7 @@ const BookTable = () => {
 
   const columnDefaults = ColumnBook();
 
-  const bookTable = useReactTable({ 
+  const bookTable = useReactTable({
     data: books,
     columns: columnDefaults,
     onSortingChange: setSorting,
@@ -132,24 +141,38 @@ const BookTable = () => {
     },
   });
 
-  const generatePageNumbers = (current: number, total: number) => {
-    const pages = [];
-
-    if (total <= 5) {
-      return Array.from({ length: total }, (_, i) => i + 1);
+  const generatePageNumbers = (current: number, total: number, delta = 2) => {
+    const pages: (number | string)[] = [];
+    const range = [];
+    
+    for (
+      let i = Math.max(1, current - delta);
+      i <= Math.min(total, current + delta);
+      i++
+    ) {
+      range.push(i);
     }
 
-    if (current <= 3) {
-      pages.push(1, 2, 3, "...", total);
-    } else if (current >= total - 2) {
-      pages.push(1, "...", total - 2, total - 1, total);
-    } else {
-      pages.push(1, "...", current, "...", total);
+    
+    if (range[0] > 1) {
+      pages.push(1);
+      if (range[0] > 2) {
+        pages.push("...");
+      }
+    }
+
+    pages.push(...range);
+    
+    if (range[range.length - 1] < total) {
+      if (range[range.length - 1] < total - 1) {
+        pages.push("...");
+      }
+      pages.push(total);
     }
 
     return pages;
   };
-  
+
   if (isLoading) {
     return (
       <div className="w-full p-4 space-y-4">
@@ -238,10 +261,9 @@ const BookTable = () => {
 
       {debouncedSearch && (
         <div className="text-sm text-muted-foreground">
-          {meta.total_items > 0 
+          {meta.total_items > 0
             ? `Found ${meta.total_items} results for "${debouncedSearch}"`
-            : `No results found for "${debouncedSearch}"`
-          }
+            : `No results found for "${debouncedSearch}"`}
         </div>
       )}
 
