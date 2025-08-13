@@ -11,9 +11,7 @@ import {
 } from "@tanstack/react-table";
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-// import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-// import { columns } from "./columns";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -30,13 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import TableSkeleton from "./TableSkeleton";
-// import { columns } from "./columns";
-// import CreateCategoryDialgo from "./CreateCategoryDialgo";
-// import {
-//   fetchCategories,
-//   softDeleteCategory,
-// } from "@/lib/controllers/CategoryController";
 import {
   Select,
   SelectContent,
@@ -44,24 +35,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchAuthors } from "../../../../controller/AuthorController";
-import { ColumnAuthor } from "./ColumnAuthor";
+import { ColumnBook } from "./ColumnBook";
+import { fetchBooks } from "../../../../controller/BookController";
 
-const AuthorTable = () => {
+const BookTable = () => {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(5);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
-
+  
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["author", page, perPage],
-    queryFn: () => fetchAuthors(page, perPage),
-    // keepPreviousData: true,
+    queryKey: ["books", page, perPage], 
+    queryFn: () => fetchBooks(page, perPage),
+    staleTime: 5000,     
   });
 
-  const authors = data?.items || [];
+  const books = data?.items || [];
   const meta = {
     current_page: data?.meta?.current_page || 1,
     total_pages: data?.meta?.last_page || 1,
@@ -69,10 +60,10 @@ const AuthorTable = () => {
     has_more_pages: data?.meta?.current_page < data?.meta?.last_page,
   };
 
-  const columnDefaults = ColumnAuthor();
+  const columnDefaults = ColumnBook();
 
-  const AuthorTable = useReactTable({
-    data: authors,
+  const bookTable = useReactTable({ // Fixed: renamed from BookTable to bookTable
+    data: books,
     columns: columnDefaults,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -88,10 +79,6 @@ const AuthorTable = () => {
       columnFilters,
       columnVisibility,
       rowSelection,
-      // pagination: {
-      //   pageIndex: page - 1,
-      //   pageSize: 10,
-      // },
     },
   });
 
@@ -112,7 +99,7 @@ const AuthorTable = () => {
 
     return pages;
   };
-
+  
   if (isLoading) {
     return (
       <div className="w-full p-4 space-y-4">
@@ -143,12 +130,10 @@ const AuthorTable = () => {
     <div className="w-full p-4 space-y-4">
       <div className="flex items-center gap-4">
         <Input
-          placeholder="Filter categories..."
-          value={
-            (AuthorTable.getColumn("name")?.getFilterValue() as string) ?? ""
-          }
+          placeholder="Filter books..."
+          value={(bookTable.getColumn("title")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            AuthorTable.getColumn("name")?.setFilterValue(event.target.value)
+            bookTable.getColumn("title")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -156,9 +141,11 @@ const AuthorTable = () => {
         <Select
           value={String(perPage)}
           onValueChange={(value) => {
-            setPerPage(Number(value));
-            setPage(1); // reset ke page 1 saat perPage berubah
+            const newPerPage = Number(value);
+            setPerPage(newPerPage);
+            setPage(1); // Reset to page 1 when perPage changes
           }}
+          disabled={isLoading} // Disable while loading
         >
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Items per page" />
@@ -179,7 +166,8 @@ const AuthorTable = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {AuthorTable.getAllColumns()
+            {bookTable
+              .getAllColumns()
               .filter((col) => col.getCanHide())
               .map((column) => (
                 <DropdownMenuCheckboxItem
@@ -198,7 +186,7 @@ const AuthorTable = () => {
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {AuthorTable.getHeaderGroups().map((headerGroup) => (
+            {bookTable.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id}>
@@ -214,8 +202,20 @@ const AuthorTable = () => {
             ))}
           </TableHeader>
           <TableBody>
-            {AuthorTable.getRowModel().rows.length ? (
-              AuthorTable.getRowModel().rows.map((row) => (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columnDefaults.length}
+                  className="h-24 text-center"
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mr-2"></div>
+                    Loading...
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : bookTable.getRowModel().rows.length ? (
+              bookTable.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -256,25 +256,11 @@ const AuthorTable = () => {
               variant="outline"
               size="sm"
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={meta.current_page <= 1}
+              disabled={meta.current_page <= 1 || isLoading}
             >
               Previous
             </Button>
 
-            {/* {Array.from({ length: meta.total_pages }, (_, i) => i + 1).map(
-              (pageNumber) => (
-                <Button
-                  key={pageNumber}
-                  variant={
-                    pageNumber === meta.current_page ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => setPage(pageNumber)}
-                >
-                  {pageNumber}
-                </Button>
-              )
-            )} */}
             {generatePageNumbers(meta.current_page, meta.total_pages).map(
               (pageNum, idx) =>
                 pageNum === "..." ? (
@@ -289,6 +275,7 @@ const AuthorTable = () => {
                     }
                     size="sm"
                     onClick={() => setPage(Number(pageNum))}
+                    disabled={isLoading}
                   >
                     {pageNum}
                   </Button>
@@ -301,7 +288,7 @@ const AuthorTable = () => {
               onClick={() =>
                 setPage((prev) => (meta.has_more_pages ? prev + 1 : prev))
               }
-              disabled={!meta.has_more_pages}
+              disabled={!meta.has_more_pages || isLoading}
             >
               Next
             </Button>
@@ -312,4 +299,4 @@ const AuthorTable = () => {
   );
 };
 
-export default AuthorTable;
+export default BookTable;

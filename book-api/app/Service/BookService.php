@@ -28,7 +28,7 @@ class BookService
             $books = Book::with(['author', 'category'])
                 ->withCount(['rating_book as total_voters'])
                 ->withAvg(['rating_book as avg_rating'], 'rating')
-                ->orderByDesc('avg_rating')
+                // ->orderByDesc('avg_rating')
                 ->paginate($request->per_page);
             $books->getCollection()->transform(function ($book) {
                 $book->avg_rating = $book->avg_rating ? round((float) $book->avg_rating, 2) : 0;
