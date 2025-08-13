@@ -35,4 +35,10 @@ class Book extends Model
     {
         return $this->hasMany(Rating::class, 'book_id');
     }
+
+    public function getAvgRatingAttribute($value)
+    {
+        return $value ? round((float) $value, 2) : 0;
+    }
+
 }

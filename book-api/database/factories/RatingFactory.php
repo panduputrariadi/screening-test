@@ -19,7 +19,7 @@ class RatingFactory extends Factory
     public function definition(): array
     {
         return [
-            'rating' => fake()->numberBetween(1, 10),
+            'rating' => fake()->randomFloat(2, 1, 10),
             'book_id' => Book::inRandomOrder()->first()->id ?? Book::factory(),
             'author_id' => Author::inRandomOrder()->first()->id ?? Author::factory(),
         ];
