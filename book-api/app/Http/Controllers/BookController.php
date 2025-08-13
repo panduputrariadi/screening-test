@@ -22,6 +22,9 @@ class BookController extends Controller
             case 'all':
                 return $this->bookService->getAllBook($request);
                 break;
+            case 'dropdown-id':
+                return $this->bookService->dropdownBookByID($request);
+                break;
             default:
                 return response()->json([
                     'status' => false,

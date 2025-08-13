@@ -59,4 +59,37 @@ class BookService
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public function dropdownBookByID(Request $request)
+    {
+        try {
+            $books = Book::select(['id', 'title', 'author_id'])->limit(10);
+            if($request->has('search')) {
+                $books->where('author_id', 'like', '%' . $request->search . '%');
+            }
+            if($request->has('title')) {
+                $books->where('title', 'like', '%' . $request->title . '%');
+            }
+            $books = $books->get();
+            if($books) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Success',
+                    'data' => $books
+                ], Response::HTTP_OK);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Not found',
+                    'data' => []
+                ], Response::HTTP_NOT_FOUND);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

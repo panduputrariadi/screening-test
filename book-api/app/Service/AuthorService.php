@@ -55,4 +55,27 @@ class AuthorService
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
+
+    public function dropdownAuthor(Request $request)
+    {
+        try {
+            $query = Author::select(['id', 'name'])->limit(10);
+            if($request->has('search')) {
+                $query->where('name', 'like', '%' . $request->search . '%');
+            }
+            $authors = $query->get();
+            return response()->json([
+                'status' => true,
+                'message' => 'Success',
+                'data' => $authors
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
 }

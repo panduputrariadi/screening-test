@@ -23,6 +23,9 @@ class AuthorController extends Controller
             case 'all':
                 return $this->authorService->getAllAuthor($request);
                 break;
+            case 'dropdown':
+                return $this->authorService->dropdownAuthor($request);
+                break;
             default:
                 return response()->json([
                     'status' => false,
