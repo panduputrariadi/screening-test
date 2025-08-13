@@ -15,6 +15,7 @@ class BookService
             $validator = Validator::make($request->all(), [
                 'page' => 'required|integer',
                 'per_page' => 'required|integer',
+                'search' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -26,6 +27,7 @@ class BookService
             }
 
             $books = Book::with(['author', 'category'])
+                ->where('title', 'like', '%' . $request->search . '%')
                 ->withCount(['rating_book as total_voters'])
                 ->withAvg(['rating_book as avg_rating'], 'rating')
                 // ->orderByDesc('avg_rating')

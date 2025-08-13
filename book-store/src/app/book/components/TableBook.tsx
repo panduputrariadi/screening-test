@@ -9,8 +9,9 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -38,17 +39,66 @@ import {
 import { ColumnBook } from "./ColumnBook";
 import { fetchBooks } from "../../../../controller/BookController";
 
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const BookTable = () => {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(5);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+    
+  const initialValues = useMemo(() => ({
+    page: Number(searchParams.get("page")) || 1,
+    perPage: Number(searchParams.get("perPage")) || 5,
+    search: searchParams.get("search") || "",
+  }), []);
+  
+  const [page, setPage] = useState(initialValues.page);
+  const [perPage, setPerPage] = useState(initialValues.perPage);
+  const [searchValue, setSearchValue] = useState(initialValues.search);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+    
+  const debouncedSearch = useDebounce(searchValue, 500);
+    
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (page > 1) params.set("page", String(page));
+    if (perPage !== 5) params.set("perPage", String(perPage));
+    
+    const newUrl = `${pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+        
+    if (window.location.pathname + window.location.search !== newUrl) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [debouncedSearch, page, perPage, pathname, router]);
+  
+  useEffect(() => {
+    if (debouncedSearch !== initialValues.search && page !== 1) {
+      setPage(1);
+    }
+  }, [debouncedSearch]);
   
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["books", page, perPage], 
-    queryFn: () => fetchBooks(page, perPage),
+    queryKey: ["books", page, perPage, debouncedSearch], 
+    queryFn: () => fetchBooks(page, perPage, debouncedSearch || undefined),
     staleTime: 5000,     
   });
 
@@ -62,7 +112,7 @@ const BookTable = () => {
 
   const columnDefaults = ColumnBook();
 
-  const bookTable = useReactTable({ // Fixed: renamed from BookTable to bookTable
+  const bookTable = useReactTable({ 
     data: books,
     columns: columnDefaults,
     onSortingChange: setSorting,
@@ -129,23 +179,26 @@ const BookTable = () => {
   return (
     <div className="w-full p-4 space-y-4">
       <div className="flex items-center gap-4">
-        <Input
-          placeholder="Filter books..."
-          value={(bookTable.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            bookTable.getColumn("title")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+        <div className="relative max-w-sm">
+          <Input
+            placeholder="Search books..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+          {searchValue !== debouncedSearch && (
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin rounded-full h-3 w-3 border-b border-gray-400"></div>
+            </div>
+          )}
+        </div>
 
         <Select
           value={String(perPage)}
           onValueChange={(value) => {
-            const newPerPage = Number(value);
-            setPerPage(newPerPage);
-            setPage(1); // Reset to page 1 when perPage changes
+            setPerPage(Number(value));
+            setPage(1);
           }}
-          disabled={isLoading} // Disable while loading
+          disabled={isLoading}
         >
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Items per page" />
@@ -183,6 +236,15 @@ const BookTable = () => {
         </DropdownMenu>
       </div>
 
+      {debouncedSearch && (
+        <div className="text-sm text-muted-foreground">
+          {meta.total_items > 0 
+            ? `Found ${meta.total_items} results for "${debouncedSearch}"`
+            : `No results found for "${debouncedSearch}"`
+          }
+        </div>
+      )}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -202,19 +264,7 @@ const BookTable = () => {
             ))}
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columnDefaults.length}
-                  className="h-24 text-center"
-                >
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mr-2"></div>
-                    Loading...
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : bookTable.getRowModel().rows.length ? (
+            {bookTable.getRowModel().rows.length ? (
               bookTable.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
