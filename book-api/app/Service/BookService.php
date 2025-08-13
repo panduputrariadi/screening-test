@@ -65,7 +65,7 @@ class BookService
         try {
             $books = Book::select(['id', 'title', 'author_id'])->limit(10);
             if($request->has('search')) {
-                $books->where('author_id', 'like', '%' . $request->search . '%');
+                $books->where('author_id', $request->search );
             }
             if($request->has('title')) {
                 $books->where('title', 'like', '%' . $request->title . '%');

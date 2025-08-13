@@ -35,8 +35,8 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { CreateRating, createRatingSchema } from "../../../schema/RatingSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PostRating } from "../../../controller/RatingController";
 import { toast } from "sonner";
+import { PostRating } from "../../../controller/RatingController";
 
 interface Author {
   id: number;

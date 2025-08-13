@@ -30,7 +30,7 @@ class RatingService
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            // Cek book milik author tersebut
+            // // Cek book milik author tersebut
             $book = Book::where('id', $validated['book_id'])
                         ->where('author_id', $validated['author_id'])
                         ->first();
