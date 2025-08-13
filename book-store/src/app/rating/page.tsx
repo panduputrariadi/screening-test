@@ -19,9 +19,24 @@ import {
 } from "@/components/ui/popover";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DropDownAuthor } from "../../../controller/AuthorController";
 import { DropDownBookByID } from "../../../controller/BookController";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { CreateRating, createRatingSchema } from "../../../schema/RatingSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PostRating } from "../../../controller/RatingController";
+import { toast } from "sonner";
 
 interface Author {
   id: number;
@@ -53,6 +68,33 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 const RatingPage = () => {
+  const queryClient = useQueryClient();
+  const formRating = useForm<CreateRating>({
+    resolver: zodResolver(createRatingSchema),
+    defaultValues: {
+      book_id: 0,
+      author_id: 0,
+      rating: 0,
+    },
+  });
+
+  const { mutate } = useMutation({
+    mutationFn: PostRating,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rating"] });
+      formRating.reset();
+      toast.success("Rating Berhasil Ditambahkan");
+    },
+
+    onError: () => {
+      toast.error("Rating Gagal Ditambahkan");
+    },
+  });
+
+  const onSubmit = (data: CreateRating) => {
+    mutate(data);
+  };
+
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearchValue = useDebounce(searchValue, 300);
 
@@ -65,15 +107,17 @@ const RatingPage = () => {
   const [selectedAuthorId, setSelectedAuthorId] = useState<string>("");
   const [selectedBookId, setSelectedBookId] = useState<string>("");
 
-  // Authors query
+  // Authors
   const { data: dropdownAuthor = [], isLoading } = useQuery<Author[]>({
     queryKey: ["author-dropdown", debouncedSearchValue],
     queryFn: () => DropDownAuthor(debouncedSearchValue),
     staleTime: 0,
   });
 
-  // Books query (passing both authorId and search)
-  const { data: dropdownBook = [], isLoading: isLoadingBook } = useQuery<Book[]>({
+  // Books
+  const { data: dropdownBook = [], isLoading: isLoadingBook } = useQuery<
+    Book[]
+  >({
     queryKey: ["book-dropdown", selectedAuthorId, debouncedBookSearch],
     queryFn: () => DropDownBookByID(selectedAuthorId, debouncedBookSearch),
     enabled: !!selectedAuthorId,
@@ -84,7 +128,7 @@ const RatingPage = () => {
     <div>
       <Card className="w-full max-w-sm">
         <CardContent>
-          <form>
+          <form onSubmit={formRating.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
               {/* Author Select */}
               <div className="grid gap-2">
@@ -124,6 +168,7 @@ const RatingPage = () => {
                                 value={author.name} // pencarian by name
                                 onSelect={() => {
                                   setSelectedAuthorId(author.id.toString()); // simpan id
+                                  formRating.setValue("author_id", author.id);
                                   setSelectedBookId(""); // reset book ketika author berubah
                                   setOpen(false);
                                 }}
@@ -146,6 +191,10 @@ const RatingPage = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+
+              <Label>
+                Book name will be shown here if you select an author
+              </Label>
 
               {/* Book Select */}
               {selectedAuthorId && (
@@ -186,6 +235,7 @@ const RatingPage = () => {
                                   value={book.title} // pencarian by title
                                   onSelect={() => {
                                     setSelectedBookId(book.id.toString());
+                                    formRating.setValue("book_id", book.id);
                                     setOpenBook(false);
                                   }}
                                 >
@@ -208,15 +258,32 @@ const RatingPage = () => {
                   </Popover>
                 </div>
               )}
+
+              {/* Rating */}
+              <div className="grid gap-2">
+                <Label>Rating</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  max={10}
+                  placeholder="Enter a number"
+                  // {...formRating.register("rating")}
+                    {...formRating.register("rating", { valueAsNumber: true })}
+                />
+              </div>
             </div>
+
+            <Button type="submit" className="w-full mt-10">
+              Submit
+            </Button>
           </form>
         </CardContent>
 
-        <CardFooter className="flex-col gap-2">
+        {/* <CardFooter className="flex-col gap-2">
           <Button type="submit" className="w-full">
             Submit
           </Button>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     </div>
   );
