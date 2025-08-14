@@ -54,6 +54,25 @@ Must install some requirement for back end and front end:
 - [Node.js](https://nodejs.org/) (LTS version recommended)
 - MySQL server running locally
 
+
+### env backend
+
+```bash
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=timedoor
+DB_USERNAME=root
+DB_PASSWORD=pandu123
+```
+
+### env frontend
+
+```bash
+NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000/api/auth
+```
+
+
 ### Backend Setup (`book-api`)
 ```bash
 cd book-api
@@ -63,3 +82,13 @@ cp .env.example .env
 php artisan key:generate
 php artisan migrate --seed
 php artisan serve
+```
+
+### Frontend Setup (`book-store`)
+```bash
+cd book-store
+npm install
+cp .env.example .env
+# Configure your database settings in .env
+npm run dev
+```
