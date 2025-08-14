@@ -49,15 +49,17 @@ Must install some requirement for back end and front end:
 
 ---
 
-### ENV FOR BACKEND
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=timedoor
-DB_USERNAME=root
-DB_PASSWORD=pandu123
+### Prerequisites
+- [Composer](https://getcomposer.org/download/) (PHP dependency manager)
+- [Node.js](https://nodejs.org/) (LTS version recommended)
+- MySQL server running locally
 
-### 2️⃣ Clone Repository
+### Backend Setup (`book-api`)
 ```bash
-git clone https://github.com/your-repo.git
-cd your-repo 
+cd book-api
+composer install
+cp .env.example .env
+# Configure your database settings in .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
