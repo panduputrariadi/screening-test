@@ -28,7 +28,6 @@ Backend built with **Laravel 12** (`book-api`) and frontend built with **Next.js
 **Backend (`book-api`)**
 - Laravel 12
 - MySQL
-- Sanctum / JWT Authentication
 
 **Frontend (`book-store`)**
 - Next.js
@@ -41,14 +40,24 @@ Backend built with **Laravel 12** (`book-api`) and frontend built with **Next.js
 ## 📦 Installation Guide
 
 ### 1️⃣ Prerequisites
-Pastikan sebelum memulai:
+Must install some requirement for back end and front end:
 - [Composer](https://getcomposer.org/download/) terinstall
 - [Node.js](https://nodejs.org/) terinstall (disarankan versi LTS)
 - [MySQL](https://dev.mysql.com/downloads/) berjalan di local
+- After clone my repo, on folder `book-api` run command `composer install` and then `php artisan serve`
+- After clone my repo, on folder `book-store` run command `npm install` and then `npm run dev`
 
 ---
+
+### ENV FOR BACKEND
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=timedoor
+DB_USERNAME=root
+DB_PASSWORD=pandu123
 
 ### 2️⃣ Clone Repository
 ```bash
 git clone https://github.com/your-repo.git
-cd your-repo
+cd your-repo 
